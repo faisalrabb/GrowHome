@@ -9,7 +9,7 @@ class Entrepeneur(models.Model):
     #project = models.OneToOneField(Project, on_delete=models.CASCADE) - deleted, connect through other side (one to one from project to entrepeneur instance)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL)
     address = models.TextField()
-    phone_number = models.CharField(max_length ='15')
+    phone_number = models.CharField(max_length =15)
     identification = models.OneToOneField(Identification, on_delete=models.SET_NULL)
 
 

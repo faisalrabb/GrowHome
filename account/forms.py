@@ -2,17 +2,17 @@ from django import forms
 from models import Country
 
 class EntrepeneurSignup(forms.Form): 
-    first_name = forms.CharField(max_length='20')
-    last_name = forms.CharField(max_length='25')
-    username = forms.CharField(max_length = '30', validators=[validate_username])
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    username = forms.CharField(max_length = 30, validators=[validate_username])
     e-mail = form.TextField(validators=[validate_email])
-    password = forms.CharField(max_length='32', widget=forms.PasswordInput)
-    confirm_password = forms.CharField(max_length='32', widget=forms.PasswordInput)
+    password = forms.CharField(max_length=32, widget=forms.PasswordInput)
+    confirm_password = forms.CharField(max_length=32, widget=forms.PasswordInput)
     country = forms.ChoiceField(choices = Country.objects.all())
     street_address = forms.TextField()
     city = forms.TextField()
-    postcode = forms.CharField(max_length = '10')
-    phone_number = forms.CharField(max_length = '15')
+    postcode = forms.CharField(max_length = 10)
+    phone_number = forms.CharField(max_length = 15)
     identification = forms.ImageField()
 
     def clean(self):
@@ -22,13 +22,13 @@ class EntrepeneurSignup(forms.Form):
         return cleaned_data
 
 class ContributorSignup(forms.Form):
-    first_name = forms.CharField(max_length='20')
-    last_name = forms.CharField(max_length='25')
-    username = forms.CharField(max_length = '30', validators=[validate_username])
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+    username = forms.CharField(max_length = 30, validators=[validate_username])
     country = forms.ChoiceField(choices = Country.objects.all())
     e-mail = form.TextField(validators=[validate_email])
-    password = forms.CharField(max_length='32', widget=forms.PasswordInput)
-    confirm_password = forms.CharField(max_length='32', widget=forms.PasswordInput)
+    password = forms.CharField(max_length=32, widget=forms.PasswordInput)
+    confirm_password = forms.CharField(max_length=32, widget=forms.PasswordInput)
 
     def clean(self):
         cleaned_data = super(ContributorSignup, self).clean()
@@ -37,8 +37,8 @@ class ContributorSignup(forms.Form):
         return cleaned_data
 
 class SignInForm(forms.Form):
-    username = forms.CharField(max_length='30')
-    password = forms.CharField(max_length ='32')
+    username = forms.CharField(max_length=30)
+    password = forms.CharField(max_length =32)
 
 def validate_email (value):
     valid = (value.endswith('.com') or value.endswith('.ca') or value.endswith('.net'))
