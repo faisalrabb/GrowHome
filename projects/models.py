@@ -32,6 +32,10 @@ class FundingRound(models.Model):
     note = models.TextField(blank=True, null=True)
     date_started = models.DateField(auto_now_add=True)
 
+    class Meta:
+        get_latest_by = "date_started"
+        ordering = ['-round_number']
+
 
 class Contribution(models.Model):
     user = models.ForeignKey(Contributor, on_delete=models.CASCADE)

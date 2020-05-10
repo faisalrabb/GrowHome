@@ -13,7 +13,7 @@ import account.models
 def entSignup(request): 
     context={}
     if request.method == 'POST':
-        form = account.forms.EntrepeneurSignup(request.POST)
+        form = account.forms.EntrepeneurSignup(request.POST, request.FILES)
         if form.is_valid():
             try:
                 user = User.objects.create_user(
@@ -28,6 +28,7 @@ def entSignup(request):
                     file = form.cleaned_data['identification']
                 )
                 userid.save()
+                #ensure all errors handled in validators
                 entrepeneur = Entrepeneur(
                     user = user
                     country = form.cleaned_data['country']
@@ -85,7 +86,7 @@ def signin(request):
             form.add_error(None,'Invalid input')
         context['form'] = form
     else:
-        context[form] = account.forms.SignInForm()
+        context['form'] = account.forms.SignInForm()
     return render(request, 'account/login.html', context)
 
 @login_required

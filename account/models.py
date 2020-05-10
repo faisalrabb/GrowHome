@@ -20,7 +20,8 @@ class Identification(models.Model):
 class Contributor(models.Model): 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL)
-    following = models.ManyToManyField(Entrepeneur, related_name='following', null=True, blank=True)
+    #following = models.ManyToManyField(Entrepeneur, related_name='following', null=True, blank=True)
+
 
 class Country(models.Model):
     name = models.CharField(max_length = 15)
