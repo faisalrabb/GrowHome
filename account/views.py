@@ -23,6 +23,10 @@ def entSignup(request):
                     email = form.cleaned_data['email'],
                     password = form.cleaned_data['password']
                 )
+            except IntegrityError:
+                form.add_error('username', 'This username is taken.')
+                return render(request, 'account/entrepeneurSignup.html', context)
+            try:
                 useraddress = form.cleaned_data['street_address'] + form.cleaned_data['city'] + form.cleaned_data['postcode']
                 userid = Identification( 
                     file = form.cleaned_data['identification']
@@ -39,7 +43,7 @@ def entSignup(request):
                 entrepeneur.save()
                 return HttpResponseRedirect(reverse('account:login'))
             except IntegrityError:
-                form.add_error('username', 'Username is taken!')
+                form.add_error(None, 'Error. Please try again later')
         context['form'] = form
     else:
         context['form'] = account.forms.EntrepeneurSignup()
@@ -58,14 +62,17 @@ def contribSignup(request):
                     email = form.cleaned_data['email'],
                     password = form.cleaned_data['password']
                 )
+            except IntegrityError:
+                form.add_error('username', 'Username is taken!')
+                return render(request, 'account/contributorSignup.html', context)
+            try:
                 contributor = Contributor(
                     user = user,
                     country = form.cleaned_data['country'],
                 )
                 contributor.save()
                 return HttpResponseRedirect(reverse('account:login'))
-            except IntegrityError:
-                form.add_error('username', 'Username is taken!')
+            
         context['form'] = form
     else:
         context['form'] = account.forms.ContributorSignup()

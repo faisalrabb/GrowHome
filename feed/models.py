@@ -27,7 +27,8 @@ class Post(models.Model, activity.Activity):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def activity_actor_attr(self):
-        #activity by project, not entrepeneur
+        #activity actor is project, not entrepeneur
         return self.project
-        
+    #no notification for every post
+
 
