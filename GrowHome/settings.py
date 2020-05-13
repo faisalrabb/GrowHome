@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'contribute',
     'projects',
     'feed',
-    'stream_django'
+    'stream_django',
+    'django-extensions'
 ]
 
 MIDDLEWARE = [

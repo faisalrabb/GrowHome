@@ -2,6 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 
+@login_required
 def followView(request, fusername):
     #fusername = kwargs['username']
     if request.user.is_authenticated:
@@ -19,6 +20,7 @@ def followView(request, fusername):
 
 #input from template: project id
 #in template, if entrepeneur viewing own project, show the post button, pass pid through context to feed/post
+@login_required
 def postView(request, pid): 
     #pid = kwargs['pid']
     context ={}

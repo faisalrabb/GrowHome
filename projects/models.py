@@ -1,14 +1,17 @@
 from django.db import models
 from accounts.models import Country, Contributor, Entrepeneur
 from stream_django.activity import Activity
+from django_extensions.db.fields import AutoSlugField
 
 # Create your models here.
 
 class Project(models.Model):
     creator = models.ForeignKey(Entrepeneur, on_delete=models.CASCADE)
     name = models.TextField(unique=True)
+    slug = AutoSlugField(populate_from='name')
     problem = models.TextField()
     solution = models.TextField()
+    info = models.TextField()
     country = models.ForeignKey(Country, on_delete=models.SET_NULL)
     city = models.CharField(max_length = 20)
     intro_video = models.FileField(upload_to='videos')
@@ -17,8 +20,7 @@ class Project(models.Model):
     def __str__(self):
         return self.name
     def get_absolute_url(self): 
-        slug = slugify(self.name)
-        return reverse('view', kwargs={'pid' = self.pk})
+        return reverse(projects.views.viewProject, args=[slug]) #<- possible error in reverse
     class Meta:
         get_latest_by = "date_started"
         ordering = ['-round_number']
@@ -50,7 +52,15 @@ class Contribution(models.Model, activity.Activity):
     user = models.ForeignKey(Contributor, on_delete=models.CASCADE)
     funding_round = models.ForeignKey(Project, on_delete=models.SET_NULL)
     amount = models.IntegerField()
+
     
+
+#class ErrorReport(models.Model):
+ #   user = models.ForeignKey(User, on_delete=models.SET_NULL)
+#    source = models.TextField()
+ #   object_data = models.TextField()
+
+
 
 
 
