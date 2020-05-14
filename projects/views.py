@@ -23,6 +23,7 @@ def newProject (request):
                     name = form.cleaned_data['name'],
                     problem = form.cleaned_data['problem'],
                     solution = form.cleaned_data['solution'],
+                    category = form.cleaned_data['category'],
                     info = form.cleaned_data['info'],
                     country = entrepeneurInstance.country,
                     city = form.cleaned_data['city'],
@@ -142,7 +143,7 @@ def viewProject(request, slug):
         raise Http404("This project is expired") # error in Project initialization - should never trigger
     fundinground = fundingrounds.latest()
     past_rounds = fundingrounds.exclude(pk=fundinground.pk)
-    updates = Post.objects.get(project=project)
+    updates = Post.objects.filter(project=project) 
     context['project'] = project
     context['funding_round'] = fundinground
     context['past_rounds'] = past_rounds

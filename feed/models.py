@@ -2,6 +2,7 @@ from django.db import models
 from accounts.models import Entrepeneur, User, Contributor
 from projects.models import Project
 from stream_django.activity import Activity
+from django_extensions.db.fields import AutoSlugField, RandomCharField
 
 # Create your models here.
 
@@ -22,8 +23,13 @@ class Follow(models.Model, activity.Activity):
 
 class Post(models.Model, activity.Activity):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    funding_round=models.ForeignKey(FundingRound, on_delete=models.SET_NULL)
+    post_identifier = RandomCharField(max_length=10)
+    title = models.CharField(max_length=250, blank=True, null=True)
     text = models.TextField()
     pfile = models.FileField(upload_to='gallery', null=True, blank=True)
+    goal_accomplished = models.BooleanField()
+    goal_text= models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def activity_actor_attr(self):

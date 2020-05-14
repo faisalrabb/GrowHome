@@ -27,7 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+STREAM_API_KEY = 'sdgn5njr25h6'
+STREAM_API_SECRET = 'rqexcdw88vxmmpsvhdmr8k4kcsw933mggwv34xhyu5j2pt49fqstzusuvxr3r2nw'
 
+LOGIN_URL = 'account/login'
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,7 +45,7 @@ INSTALLED_APPS = [
     'projects',
     'feed',
     'stream_django',
-    'django-extensions'
+    'django_extensions'
 ]
 
 MIDDLEWARE = [

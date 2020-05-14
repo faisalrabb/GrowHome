@@ -1,5 +1,6 @@
 from django import forms
-#from projects.models import 
+from projects.models import Category
+from account.models import Country
 
 
 class ProjectForm(forms.Form):
@@ -8,6 +9,7 @@ class ProjectForm(forms.Form):
     name = forms.CharField()
     problem = forms.CharField()
     solution = forms.CharField()
+    category = forms.ChoiceField(choices=Category.objects.all())
     info = forms.CharField()
     funding_goal = forms.IntegerField()
     goal_1 = forms.CharField()
