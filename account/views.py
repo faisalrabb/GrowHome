@@ -100,6 +100,10 @@ def signin(request):
 def signout(request):
     logout(request)
     return HttpResponseRedirect(reverse('feed:index'))
+
+@login_required
+def profileView(request):
+    # implement
              
 
 

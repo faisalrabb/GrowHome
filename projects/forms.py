@@ -6,7 +6,7 @@ from account.models import Country
 class ProjectForm(forms.Form):
     country = forms.ChoiceField(choices = Country.objects.all())
     city = forms.CharField()
-    name = forms.CharField()
+    name = forms.CharField(max_length=80)
     problem = forms.CharField()
     solution = forms.CharField()
     category = forms.ChoiceField(choices=Category.objects.all())

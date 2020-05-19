@@ -27,9 +27,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+#django-stream settings
 STREAM_API_KEY = 'sdgn5njr25h6'
 STREAM_API_SECRET = 'rqexcdw88vxmmpsvhdmr8k4kcsw933mggwv34xhyu5j2pt49fqstzusuvxr3r2nw'
 
+#django-paypal settings
+PAYPAL_RECEIVER_EMAIL = 'sb-zjdi91796694@business.example.com'
+PAYPAL_TEST = True
+
+#@login-required decorator
 LOGIN_URL = 'account/login'
 # Application definition
 
@@ -45,7 +51,8 @@ INSTALLED_APPS = [
     'projects',
     'feed',
     'stream_django',
-    'django_extensions'
+    'django_extensions',
+    'paypal.standard.ipn'
 ]
 
 MIDDLEWARE = [
@@ -127,6 +134,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-
+#settings for displaying media
 MEDIA_URL = '/media'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

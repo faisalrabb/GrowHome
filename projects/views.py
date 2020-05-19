@@ -4,7 +4,7 @@ from projects.forms import ProjectForm, FundingRoundForm
 from projects.models import FundingRound, Project
 from account.models import User, Entrepeneur
 from django.contrib.auth.decorators import login_required
-
+from contribute.forms import PledgeForm
 # Create your views here.
 
 @login_required
@@ -63,6 +63,8 @@ def newFundingRound(request, pid):
             return HttpsResponse("Previous funding rounds not found") #Error in project initialization. In theory this line should never run
         else:
             fundinground = fundingrounds.latest()
+            if fundinground.is_completed = False:
+                return redirect(reverse('feed:index'))
         if project.creator != entrepeneur:
             return HttpResponse("Unauthorized") #project not created by user - shouldn't trigger unless malicious attempt
     except: 
@@ -107,8 +109,8 @@ def editProject(request, pid):
     if creator != project.creator:
         return HttpResponseRedirect(reverse('feed:index')) # redirect for when someone tries to edit a project that's not theirs, shouldn't happen unless malicious attempt
     context={}
-    if form.method == 'POST':
-        form = projects.forms.ProjectForm(request.POST, request.FILES)
+    if request.method == 'POST':
+        form = projects.forms.ProjectUpdateForm(request.POST, request.FILES)
         if form.is_valid() and form.has_changed():
             try:
                 project_edit = Project(
@@ -128,7 +130,7 @@ def editProject(request, pid):
                 except:
                     form.add_error('video', 'Error uploading video. Please use the suggested mp4 format. If this error continues, contact support.')
     else:
-        context['form'] = projects.forms.ProjectChangeForm(initial={'name': project.name, 'problem': project.problem,'solution': project.solution, 'city': project.city})
+        context['form'] = projects.forms.ProjectUpdateForm(initial={'name': project.name, 'problem': project.problem,'solution': project.solution, 'city': project.city})
         context['project'] = project
     return render(request, 'projects/edit.html', context)
 
@@ -148,6 +150,8 @@ def viewProject(request, slug):
     context['funding_round'] = fundinground
     context['past_rounds'] = past_rounds
     context['posts'] = updates
+    request.session['pid'] = project.id
+    context['pledge_form') = contribute.forms.PledgeForm()
     return render(request, 'projects/view.html', context) #success redirect
 
 

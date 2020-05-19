@@ -3,12 +3,27 @@ from stream_django.feed_manager import feed_manager
 from account.models import User, Entrepeneur, Contributor
 from projects.models import Project, FundingRound
 from feed.forms import PostForm, PostUpdateForm
-
+from stream_django.enrich import Enrich
 # Create your views here.
+
+enricher = Enrich()
+
 
 @login_required
 def index(request):
-    #
+    feeds = feed_manager.get_news_feeds(request.user.id)
+    activities = feeds.get('timeline').get()['results']
+    enriched_activities = enricher.enrich_activities(activities)
+    notification_feed = client.feed('notification', current_user.id)
+    notifications = notification_feed.get()['results']
+    notifications_enriches = enricher.enrich_activities(notifications)
+    context['activities'] = enriched_activities
+    context['login_user'] = request.user
+    context['notifications'] = notifications_enriched
+    return render(request, 'feed/index.html', context)
+
+
+
 
 @login_required
 def followView(request, fusername):
@@ -42,7 +57,7 @@ def postView(request, pid):
     context ={}
     try:
         project = Project.objects.get(pk=pid) 
-        #context['project'] = project
+        context['project'] = project
     except:
         return HttpResponse("Project not found") #project not found error
     try: 
@@ -149,7 +164,7 @@ def editPostView(request, post_identifier):
             form.add_error(None, 'Try again.')
         context['form'] = form
     else:
-        context['form'] = feed.forms.PostUpdateForm(initial={}) #<- fill
+        context['form'] = feed.forms.PostUpdateForm(initial={'title': post.title, 'text': post.text}) #<- fill
     return render(request, 'feed/edit.html', context)
 
 

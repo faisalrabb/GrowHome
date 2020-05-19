@@ -12,6 +12,10 @@ class Entrepeneur(models.Model):
     phone_number = models.CharField(max_length =15)
     identification = models.OneToOneField(Identification, on_delete=models.SET_NULL)
 
+    def __str__(self):
+        return user.username
+
+
 
 class Identification(models.Model):
     file = models.ImageField(upload_to='id')
@@ -21,6 +25,9 @@ class Contributor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL)
     #following = models.ManyToManyField(Entrepeneur, related_name='following', null=True, blank=True)
+
+    def __str__(self):
+        return user.username
 
 
 class Country(models.Model):

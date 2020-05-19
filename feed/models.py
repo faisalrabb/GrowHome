@@ -18,8 +18,8 @@ class Follow(models.Model, activity.Activity):
         return self.actor
     @property
     def activity_notify(self):
-        #notification feed goes to entrepeneur
-        return [feed_manager.get_notification_feed(self.target.creator.id)]
+        #notification feed goes to entrepeneur user
+        return [feed_manager.get_notification_feed(self.target.creator.user.id)]
 
 class Post(models.Model, activity.Activity):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -33,8 +33,7 @@ class Post(models.Model, activity.Activity):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def activity_actor_attr(self):
-        #activity actor is project, not entrepeneur
+        #activity actor is project
         return self.project
-    #no notification for every post
 
 

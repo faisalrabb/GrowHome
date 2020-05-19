@@ -20,7 +20,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('account/', include('account.urls')),
     path('projects/', include('projects.urls')),
-    path('', include('feed.urls')),
     path('contribute/', include('contribute.urls')),
+    path('paypal/', include('paypal.standard.ipn.urls')),
+    path('', include('feed.urls')),
     #path('message/', include('message.urls))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
