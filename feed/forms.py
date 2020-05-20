@@ -12,3 +12,7 @@ class PostUpdateForm(forms.Form):
     text = forms.CharField()
     pfile = forms.FileField(upload_to='gallery', null=True, blank=True, empty_value=None)
     goal_accomplished = forms.ChoiceField(choices=[1,2,3], blank=True, null=True, empty_value=None)
+
+class SearchForm(forms.Form):
+    term = forms.CharField(empty_value='')
+    country = forms.ChoiceField(choices=Country.objects.all(), required=False, empty_value=None)

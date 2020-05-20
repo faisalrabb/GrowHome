@@ -138,6 +138,7 @@ def viewProject(request, slug):
     context={}
     try:
         project = Project.objects.get(slug=slug)
+        project.views += 1
     except:
         raise Http404("Project not found") #project not found
     fundingrounds = FundingRound.objects.filter(project=project)

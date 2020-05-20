@@ -17,6 +17,8 @@ class Project(models.Model):
     city = models.CharField(max_length = 20)
     intro_video = models.FileField(upload_to='videos')
     photo = models.ImageField(upload_to='photos')
+    seeking_funding = models.BooleanField(default=True)
+    views = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -41,7 +43,8 @@ class FundingRound(models.Model, activity.Activity):
     video = models.FileField(blank=True, null=True)
     note = models.TextField(blank=True, null=True)
     created_at = models.DateField(auto_now_add=True)
-    is_completed = models.BooleanField(blank=True, default=False)
+    goals_finished = models.BooleanField(blank=True, default=False)
+    funding_finished = models.BooleanField(blank=True, default=False)
 
     class Meta:
         get_latest_by = "date_started"

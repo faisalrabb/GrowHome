@@ -13,7 +13,7 @@ class EntrepeneurSignup(forms.Form):
     city = forms.CharField()
     postcode = forms.CharField(max_length = 10)
     phone_number = forms.CharField(max_length = 15)
-    identification = forms.ImageField()
+    #identification = forms.ImageField()
 
     def clean(self):
         cleaned_data = super(EntrepeneurSignup, self).clean()

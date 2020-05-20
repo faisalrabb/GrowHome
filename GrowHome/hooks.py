@@ -27,63 +27,50 @@ def successful_payment(sender, **kwargs):
                 pledge_id = int(ipn_obj.invoice)
                 ipn_sender_email = ipn_obj.sender_email
                 paypal_invoice = ipn_obj.txn_id
-                description = "Pledge not found, meaning there's no info about which project this is for. The amount_paid attribute represents the amount this user has paid. This has not registered as a payment in the Contributions page. Check user's actions to figure out who this contribution is for, and make appropriate changes."
+                description = "Pledge not found, meaning there's no info about which project this is for. The amount_paid attribute represents the amount this user has paid. This has not recorded as a new Contribution, but the funds have been transferred to us. Check user's actions to figure out who this contribution is for, and make appropriate changes to that project's finances."
                 amount_paid = ipn_obj.mc_gross
                 currency = ipn_obj.mc_currency
             )
             new_error.save()
             return
-        conflict = Contribution.objects.filter(pledge=pledge)
-        if conflict is not None:
-            #the pledge has already been fulfilled - duplicate payment
-            new_error = PaymentError(
-                pledge_id = int(ipn_obj.invoice)
-                ipn_sender_email = ipn_obj.sender_email
-                paypal_invoice = ipn_obj.txn_id
-                previous_contribution = conflict.first()
-                description="The pledge has already been fulfilled. This could be a duplicate payment. Contact the email associated and ask if this was an intended action. This action has been recorded as a new contribution, possibly with different attributes for amount, currency, paypal invoice"
-            )
-            new_error.save() 
-        # ALSO: for the same reason, you need to check the amount
-        # received, `custom` etc. are all what you expect or what
-        # is allowed.
-        # Undertake some action depending upon `ipn_obj`.
         if ipn_obj.mc_gross < 0:
+            cnf_bool = False
             try:
-                contribution = Contribution.objects.get(pledge = pledge)
+                contribution = conflict.first()
+                old_amount = contribution.amount
             except:
-                #contribution not found, error reported 
-                new_error = PaymentError(
-                    pledge_id = int(ipn_obj.invoice),
-                    ipn_sender_email = ipn_obj.sender_email,
-                    paypal_invoice = ipn_obj.txn_id,
-                    description = "This payment is a reversal (full or partial refund) done by PayPal. The contribution was not found in the database. Find the contribution this is associated with, and subtract that amount from the project's funds. This error is extremely rare and should be reported if ever triggered.",
-                    amount_paid = ipn_obj.mc_gross,
-                    currency= ipn_obj.mc_currency,
-                )
-                new_error.save()
-                return
-            old_amount = contribution.amount
-            contribution.amount = contribution.amount + ipn_obj.mc_gross
-            #recording successful reversal
+                old_amount = 0
+                cnf_bool = True
             reversal = PaymentReversal(
                 contribution= contribution,
                 old_amount = old_amount,
                 new_amount = old_amount + ipn_obj.mc_gross,
                 change = ipn_obj.mc_gross
+                contribution_not_found = cnf_bool
             )
             reversal.save()
-        else:
-            #payment amount is positive - i.e. not a change to an existing payment
-            contribution = Contribution(
-                user = pledge.user,
-                funding_round = pledge.funding_round,
-                currency = ipn_obj.mc_currency,
-                amount = ipn_obj.mc_gross, 
-                pledge = pledge,
-                ipn_sender_email = ipn_obj.sender_email,
-                paypal_invoice = ipn_obj.txn_id
-            )
+        else: 
+            conflicts = Contribution.objects.filter(pledge=pledge)
+            if conflicts is not None:
+                #the pledge has already been fulfilled - duplicate payment
+                new_error = PaymentError(
+                    pledge_id = int(ipn_obj.invoice)
+                    ipn_sender_email = ipn_obj.sender_email
+                    paypal_invoice = ipn_obj.txn_id
+                    previous_contribution = conflicts.first()
+                    description="The pledge has already been fulfilled. This could be a duplicate payment. Contact the email associated and ask if this was an intended action. This action has been recorded as a new contribution, possibly with different attributes for amount, currency, paypal invoice"
+                )
+                new_error.save() 
+
+        contribution = Contribution(
+            user = pledge.user,
+            funding_round = pledge.funding_round,
+            currency = ipn_obj.mc_currency,
+            amount = ipn_obj.mc_gross, 
+            pledge = pledge,
+            ipn_sender_email = ipn_obj.sender_email,
+            paypal_invoice = ipn_obj.txn_id
+        )
         contribution.save()
     else:
         #payment failed

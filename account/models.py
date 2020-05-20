@@ -10,7 +10,7 @@ class Entrepeneur(models.Model):
     country = models.ForeignKey(Country, on_delete=models.SET_NULL)
     address = models.TextField()
     phone_number = models.CharField(max_length =15)
-    identification = models.OneToOneField(Identification, on_delete=models.SET_NULL)
+    #identification = models.OneToOneField(Identification, on_delete=models.SET_NULL)
 
     def __str__(self):
         return user.username

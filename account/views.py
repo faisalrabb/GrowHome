@@ -28,17 +28,16 @@ def entSignup(request):
                 return render(request, 'account/entrepeneurSignup.html', context)
             try:
                 useraddress = form.cleaned_data['street_address'] + form.cleaned_data['city'] + form.cleaned_data['postcode']
-                userid = Identification( 
-                    file = form.cleaned_data['identification']
-                )
-                userid.save()
-                #ensure all errors handled in validators
+                #userid = Identification( 
+                #    file = form.cleaned_data['identification']
+                #)
+                #userid.save()
                 entrepeneur = Entrepeneur(
                     user = user
                     country = form.cleaned_data['country']
                     address = useraddress
                     phone_number = form.cleaned_data['phone_number']
-                    identification = userid
+                    #identification = userid
                 )
                 entrepeneur.save()
                 return HttpResponseRedirect(reverse('account:login'))
@@ -86,6 +85,11 @@ def signin(request):
             user = authenticate(request, username=form.cleaned_data['username'],password=form.cleaned_data['password'])
             if user is not None:
                 login(request, user)
+                try: 
+                    user_obj = Entrepeneur.objects.get(user = user)
+                except:
+                    user_obj = Contributor.objects.get(user=user)
+                request.session['user_obj'] = user_obj
                 return HttpResponseRedirect(reverse('feed:index'))
             else:
                 form.add_error(None,'Invalid username or password')

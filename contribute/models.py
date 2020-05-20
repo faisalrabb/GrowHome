@@ -57,8 +57,9 @@ class PaymentReversal(models.Model):
     old_amount = models.IntegerField()
     new_amount = models.IntegerField()
     change = models.IntegerField()
-    description = models.TextField(blank=True, default="A payment reversal has happened. Action should be taken only if the original payment occurred before the entrepeneur's last payout, in which case, make the appropriate changes to the project's fund")
+    description = models.TextField(blank=True, default="A payment has been reversed from PayPal, this has been recorded on the contributions page as a new negative amount contribution. No further action required unless contribution_not_found is equal to True. This should in theory never happen but if it does, contact faisal")
     created_at = models.DateTimeField(auto_now_add=True)
+    contribution_not_found = models.BooleanField(default=False)
 
     class Meta():
         ordering = ['-created_at']

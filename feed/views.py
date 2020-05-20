@@ -4,6 +4,8 @@ from account.models import User, Entrepeneur, Contributor
 from projects.models import Project, FundingRound
 from feed.forms import PostForm, PostUpdateForm
 from stream_django.enrich import Enrich
+from django.db.models import Q
+from django.core.paginator import Paginator
 # Create your views here.
 
 enricher = Enrich()
@@ -20,6 +22,7 @@ def index(request):
     context['activities'] = enriched_activities
     context['login_user'] = request.user
     context['notifications'] = notifications_enriched
+    context['search_form'] = feed.forms.SearchForm()
     return render(request, 'feed/index.html', context)
 
 
@@ -167,7 +170,24 @@ def editPostView(request, post_identifier):
         context['form'] = feed.forms.PostUpdateForm(initial={'title': post.title, 'text': post.text}) #<- fill
     return render(request, 'feed/edit.html', context)
 
-
+#build discover on top of search view
+def searchView(request, page_number)
+    if request.method == 'GET':
+        #explore view
+        matches = Project.objects.filter(seeking_funding=True).order_by('-views')
+    if request.method == 'POST':
+        #Form submitted (i.e. actual search query)
+        form = feed.forms.SearchForm(request.POST)
+        if form.is_valid():
+            term = form.cleaned_data['term']
+            country = form.cleaned_data['country']
+            matches = Project.objects.filter(Q(name__contains=term) | Q(problem__countains=term) | Q(solution__countains=term) | Q(info__countains=term)).order_by('-seeking_funding', '-views')
+            if country is not None:
+                matches = matches.filter(country=country)
+    paginator_object = Paginator(matches, 20)
+    #context['all-projects'] = matches
+    context['paginator'] = paginator_object.get_page(page_number)
+    return render(request, 'feed/search.html', context)
 
 
 
