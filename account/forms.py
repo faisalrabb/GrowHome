@@ -26,7 +26,7 @@ class ContributorSignup(forms.Form):
     last_name = forms.CharField()
     username = forms.CharField(max_length = 30, validators=[validate_username])
     country = forms.ChoiceField(choices = Country.objects.all())
-    e-mail = form.CharField(validators=[validate_email, validate_email_extension])
+    e-mail = form.CharField(validators=[validate_email])
     password = forms.CharField(max_length=32, widget=forms.PasswordInput)
     confirm_password = forms.CharField(max_length=32, widget=forms.PasswordInput)
 
@@ -40,13 +40,19 @@ class SignInForm(forms.Form):
     username = forms.CharField(max_length=30)
     password = forms.CharField(max_length =32)
 
-def validate_email_extension (value):
-    valid = (value.endswith('.com') or value.endswith('.ca') or value.endswith('.net') or value.endswith('.org') or value.endswith('.edu'))
-    if not valid:
-        raise ValidationError ('Invalid E-mail format', code='invalid_email')
-    email = User.objects.filter(email=value)
-    if email is not None:
-        raise ValidationError('Email is taken', code='email_taken')
+class PasswordChangeForm(forms.Form):
+    old_password = forms.CharField()
+    new_password = forms.CharField()
+
+
+
+#def validate_email_extension (value):
+#    valid = (value.endswith('.com') or value.endswith('.ca') or value.endswith('.net') or value.endswith('.org') or value.endswith('.edu'))
+#    if not valid:
+#        raise ValidationError ('Invalid E-mail format', code='invalid_email')
+    #email = User.objects.filter(email=value)
+    #if email is not None:
+    #    raise ValidationError('Email is taken', code='email_taken')
 
 def validate_username (value):
     user = User.objects.filter(username=value)

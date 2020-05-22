@@ -19,6 +19,7 @@ class Project(models.Model):
     photo = models.ImageField(upload_to='photos')
     seeking_funding = models.BooleanField(default=True)
     views = models.IntegerField(default=0)
+    followers = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -45,6 +46,7 @@ class FundingRound(models.Model, activity.Activity):
     created_at = models.DateField(auto_now_add=True)
     goals_finished = models.BooleanField(blank=True, default=False)
     funding_finished = models.BooleanField(blank=True, default=False)
+    featured = models.BooleanField(default=False)
 
     class Meta:
         get_latest_by = "date_started"
@@ -57,13 +59,7 @@ class Category(models.Mode):
 
     def __str__(self):
         return self.title
-class CuratedProjects(models.Model):
-    project=models.ForeignKey(Project, on_delete=models.CASCADE)
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="country")
-    added = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        ordering = ['-added']
 
 
 #class ErrorReport(models.Model):

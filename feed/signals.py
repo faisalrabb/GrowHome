@@ -8,11 +8,13 @@ from stream_django.feed_manager import feed_manager
 @receiver(pre_delete, sender=Follow)
 def unfollow(sender, instance, using, **kwargs):
     feed_manager.unfollow_user(instance.actor.id, instance.target.id)
+    instance.target.followers -= 1
 
 @receiver(post_save, sender=Follow)
 def follow(sender, instance, created, **kwargs):
     if created:
             feed_manager.follow_user(instance.actor.id, instance.target.id)
+            instance.target.followers += 1
         
 
 #this should be in account app.
@@ -22,7 +24,10 @@ def follow_local(sender, instance, created, **kwargs):
     if created:
         user = instance.user
         country = instance.country
-        curated_projects = CuratedProjects.objects.filter(country=country)[:10]
+        if country is not None:
+            curated_projects = Projects.objects.filter(country=country, featured=True)[:10]
+        else:
+            curated_projects = Projects.objects.filter(featured=True)[:10]
         for project in curated_projects:
             feed_manager.follow_user(instance.user.id, project.id)
 

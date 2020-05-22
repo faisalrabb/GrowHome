@@ -171,23 +171,40 @@ def editPostView(request, post_identifier):
     return render(request, 'feed/edit.html', context)
 
 #build discover on top of search view
-def searchView(request, page_number)
-    if request.method == 'GET':
-        #explore view
-        matches = Project.objects.filter(seeking_funding=True).order_by('-views')
+
+#accepts three optional GET parameters (query, country, and page_number), if query and country are None, the "explore" selection is returned
+def searchView(request)
+    query = request.GET.get('q', None)
+    country = request.GET.get('country_name', None)
+    page_number = request.GET.get('page_number', None)
+    if country_name is not None:
+        try:
+            country = Country.objects.get(name=country_name)
+        except:
+            country = None
+
+    if query is None and country is None:
+        #explore selection
+        matches = Project.objects.filter(seeking_funding=True).order_by('-views', '-featured')
     if request.method == 'POST':
         #Form submitted (i.e. actual search query)
         form = feed.forms.SearchForm(request.POST)
         if form.is_valid():
-            term = form.cleaned_data['term']
+            query = form.cleaned_data['query']
             country = form.cleaned_data['country']
-            matches = Project.objects.filter(Q(name__contains=term) | Q(problem__countains=term) | Q(solution__countains=term) | Q(info__countains=term)).order_by('-seeking_funding', '-views')
-            if country is not None:
-                matches = matches.filter(country=country)
-    paginator_object = Paginator(matches, 20)
+    if query is None:
+        query = ''
+    matches = Project.objects.filter(Q(name__contains=query) | Q(problem__countains=query) | Q(solution__countains=query) | Q(info__countains=query)).order_by('-seeking_funding', '-views')
+    if country is not None:
+        matches = matches.filter(country=country)
+    paginator = Paginator(matches, 20)
     #context['all-projects'] = matches
-    context['paginator'] = paginator_object.get_page(page_number)
+    try:
+        context['projects'] = paginator.page(page_number)
+    except PageNotAnInteger:
+        context['projects'] = paginator.page(1)
+    except EmptyPage:
+        context['projects'] = paginator.page(paginator.num_pages)
     return render(request, 'feed/search.html', context)
-
 
 

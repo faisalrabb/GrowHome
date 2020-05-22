@@ -6,7 +6,6 @@ from projects.models import Project
 
 class Entrepeneur(models.Model): 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    #project = models.OneToOneField(Project, on_delete=models.CASCADE) - deleted, connect through other side (one to one from project to entrepeneur instance)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL)
     address = models.TextField()
     phone_number = models.CharField(max_length =15)
@@ -31,7 +30,7 @@ class Contributor(models.Model):
 
 
 class Country(models.Model):
-    name = models.CharField(max_length = 15)
+    name = models.CharField(max_length = 15)#, null=True)
 
     def __str__(self):
         return self.name

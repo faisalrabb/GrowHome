@@ -41,7 +41,7 @@ def entSignup(request):
                 )
                 entrepeneur.save()
                 return HttpResponseRedirect(reverse('account:login'))
-            except IntegrityError:
+            except:
                 form.add_error(None, 'Error. Please try again later')
         context['form'] = form
     else:
@@ -71,7 +71,8 @@ def contribSignup(request):
                 )
                 contributor.save()
                 return HttpResponseRedirect(reverse('account:login'))
-            
+            except:
+                form.add_error(None, "An unknown error occured.")
         context['form'] = form
     else:
         context['form'] = account.forms.ContributorSignup()
@@ -107,8 +108,65 @@ def signout(request):
 
 @login_required
 def profileView(request):
-    # implement
-             
+    try:
+        user_obj = Contributor.objects.get(user=request.user)
+        context['type'] = "Contributor"
+    except:
+        user_obj = Entrepeneur.objects.get(user=request.user)
+        try:
+            projects = Project.objects.filter(creator=user_obj)
+            if projects is not None:
+                posts = Post.objects.filter(actor__in=projects)
+                context['posts'] = posts
+        except:
+            projects = None
+            posts = Post.objects.filter(actor__in=projects)
+        context['projects'] = projects
+        context['posts'] = posts
+        context['type'] = "Entrepeneur"
+    request.session['user_obj'] = user_obj
+    context['contributions'] = Contribution.objects.filter(actor=request.user)
+    context['liked'] = Like.objects.filter(actor=request.user)
+    return render(request, 'account/view.html', context)
+
+
+#not really meant for use at this stage
+@login_required
+def becomeEntrepeneurView(request):
+    try:
+        contributor = Contributor.objects.filter(user=request.user)
+    except:
+        return redirect(reverse(feed:index))
+    if form.method=='POST':
+        form = account.forms.EntrepeneurInfoForm(request.POST):
+        if form.is_valid():
+            try:
+                #might need to find less shit way of doing this
+                contributor.user = None
+                contributor.save()
+                entrepeneur = Entrepeneur(
+                    user=request.user,
+                    country=contributor.country,
+                    address = (form.cleaned_data['street_address'] +  ", " + form.cleaned_data['post_code'] + ", " + form.cleaned_data['city'])
+                    phone_number = form.cleaned_data['phone_number']
+                )
+                entrepeneur.save()
+                contributor.delete()
+            except:
+                contributor.user = request.user
+                contributor.save()
+                form.add_error(None,"An error occured. Please try again later")
+                context['form'] = form
+        else:
+            form.add_error(None, "Try again.")
+    else:
+        context['form'] = account.forms.EntrepeneurInfoForm()
+    return render(request, 'account/becomeEntrepeneur', context)
+
+
+
+                
+    
 
 
     

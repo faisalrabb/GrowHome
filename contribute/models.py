@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class Contribution(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    actor = models.ForeignKey(User, on_delete=models.CASCADE)
     funding_round = models.ForeignKey(Project, on_delete=models.SET_NULL)
     amount = models.IntegerField()
     currency=models.CharField(max_length=10)
@@ -18,7 +18,7 @@ class Contribution(models.Model):
 
 
 class Pledge(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    actor = models.ForeignKey(User, on_delete=models.CASCADE)
     funding_round = models.ForeignKey(Project, on_delete=models.SET_NULL)
     amount = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)

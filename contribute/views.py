@@ -10,7 +10,7 @@ def index(request):
     if method.request == 'GET':
         rdr=False
         #if a user visits this page without form submission
-        pledges = Pledge.objects.filter(user=request.user)
+        pledges = Pledge.objects.filter(actor=request.user)
         if pledges is None:
             #if the user has no previous pledges to show information for
             rdr = True #redirect them to either their last viewed project or the homepage
@@ -45,7 +45,7 @@ def index(request):
                 funding_rounds = FundingRound.objects.filter(project=project)
                 funding_round = funding_rounds.latest('created_at')
                 pledge = Pledge(
-                    user = request.user
+                    actor = request.user
                     funding_round = funding_round
                     amount = form.cleaned_data['amount']
                 )
