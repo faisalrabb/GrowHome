@@ -16,20 +16,41 @@ def follow(sender, instance, created, **kwargs):
             feed_manager.follow_user(instance.actor.id, instance.target.id)
             instance.target.followers += 1
         
-
-#this should be in account app.
-@receiver(post_save, sender=Entrepeneur)
-@receiver(post_save, sender=Contributor)
-def follow_local(sender, instance, created, **kwargs):
+@receiver(post_save, sender=Like)
+def like(sender, instance, created, **kwargs):
     if created:
-        user = instance.user
-        country = instance.country
-        if country is not None:
-            curated_projects = Projects.objects.filter(country=country, featured=True)[:10]
+        if instance.target_post is None:
+            try:
+                instance.target_project.likes += 1
+            except:
+                pass
         else:
-            curated_projects = Projects.objects.filter(featured=True)[:10]
-        for project in curated_projects:
-            feed_manager.follow_user(instance.user.id, project.id)
+            instance.target_post.likes += 1
+
+@receiver(post_delete, sender=Like)
+def unlike(sender, instance, created, **kwargs):
+    if created:
+        if instance.target_post is None:
+            try:
+                instance.target_project.likes -= 1
+            except:
+                pass
+        else:
+            instance.target_post.likes -= 1
+
+@receiver(pre_save, sender=Post)
+def uncheck_goals(sender, instance, created, **kwargs):
+    goal = instance.goal_accomplished
+    if goal is not None:
+        instance.goal_accomplished.accomplished = False
+        instance.goal_accomplished.save()
+
+@receiver(post_save, sender=Post)
+def uncheck_goals(sender, instance, created, **kwargs):
+    goal = instance.goal_accomplished
+    if goal is not None:
+        instance.goal_accomplished.accomplished = True
+        instance.goal_accomplished.save()
 
 
 

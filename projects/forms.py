@@ -4,22 +4,15 @@ from account.models import Country
 
 
 class ProjectForm(forms.Form):
-    country = forms.ChoiceField(choices = Country.objects.all())
     city = forms.CharField()
     name = forms.CharField(max_length=80)
     problem = forms.CharField()
     solution = forms.CharField()
     category = forms.ChoiceField(choices=Category.objects.all())
     info = forms.CharField()
-    funding_goal = forms.IntegerField()
-    goal_1 = forms.CharField()
-    goal_2 = forms.CharField()
-    goal_3 = forms.CharField()
-    info = forms.CharField()
     video = forms.FileField(validators=[validate_file])
     photo = forms.ImageField(validators=[validate_image])
-    intro_video = forms.FileField(validators=[validate_file])
-    photo = forms.ImageField(validators=[validate_image])
+    looking_for = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=Collaborator.objects.all())
 
 class FundingRoundForm(forms.Form):
     funding_goal = forms.IntegerField(max_value=20000)
@@ -28,16 +21,16 @@ class FundingRoundForm(forms.Form):
     goal_3 = forms.CharField()
     info = forms.CharField()
     video = forms.FileField(validators=[validate_file])
-    #photo = forms.ImageField(validators=[validate_image])
     note = forms.CharField(blank=True)
-    
-class ProjectUpdateForm(forms.Form):
-    name = forms.CharField()
-    problem = forms.CharField()
-    solution = forms.CharField()
-    city = forms.CharField()
-    video = forms.FileField(required=False)
 
+class FundingRoundUpdateForm(forms.Form):
+    funding_goal = forms.IntegerField(max_value=20000)
+    info = forms.CharField()
+    video = forms.FileField(validators=[validate_file])
+    note = forms.CharField(blank=True)
+
+class GoalForm(forms.Form):
+    text = forms.CharField()
 
 def validate_file (value): 
     if value is None:

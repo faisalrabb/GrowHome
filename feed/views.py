@@ -29,28 +29,29 @@ def index(request):
 
 
 @login_required
-def followView(request, fusername):
+def followView(request, pid):
     #fusername = kwargs['username']
     try:
-        ent = Entrepeneur.objects.get(user.username = fusername)
+        proj = Project.objects.get(pk=pid)
     except: 
-        return HttpResponse("User not found!")
+        return JsonResponse({'status': 'error', 'message': '404: User not found'})
     if Follow.objects.filter(actor=request.user, target=ent) is None:
         follow = Follow(
             actor = request.user
             target = ent
         )
         follow.save()
-    return HttpResponseRedirect(reverse('feed:index'))
+    return JsonResponse({'status': 'success', 'message': 'ok'})
 
 @login_required
-def unfollowView(request, fusername):
+def unfollowView(request, pid):
     try: 
-        target = Entrepeneur.objects.get(username=fusername)
+        target = Project.objects.get(pk=pid)
         follow_instance = Follow.objects.get(actor=request.user, target=target)
     except:
-        return HttpResponseRedirect(reverse('feed:index')) # failure redirect, no error message
+        return JsonResponse({'status': 'error', 'message': 'could not fetch relevant follow instance'})
     follow_instance.delete()
+    return JsonResponse({'status': 'success', 'message':'ok'})
     
 
 #in template, if entrepeneur viewing own project, show the post button, pass pid through context to feed/post
@@ -69,7 +70,7 @@ def postView(request, pid):
         context['funding_round'] = funding_round
         context['goals'] = [funding_round.goal_1, funding_round.goal_2, funding_round.goal_3]
     except:
-        return HttpResponse("Project initialization error. Please contact support.") #should never happen
+        return HttpResponse("Project initialization error. Please try later.") #should never happen
     if user.is_authenticated and request.user == project.creator.user: 
         if request.method == 'POST':
             form = feed.forms.postView(request.POST, request.FILES)
@@ -80,25 +81,14 @@ def postView(request, pid):
                 title = form.cleaned_data['title'],
                 text = form.cleaned_data['text'],
                 pfile = form.cleaned_data['file'],
+                goal_accomplished= form.cleaned_data['goal_accomplished']
                 )
-                if form.cleaned_data['goal_accomplished'] is None:
-                    post.goal_accomplished = True
-                    if goal_accomplished==1:
-                        funding_round.goal_1_finished = True
-                        post.goal_text = funding_round.goal_1
-                    elif goal_accomplished == 2:
-                        funding_round.goal_1_finished = True
-                        post.goal_text = funding_round.goal_2
-                    elif goal_accomplished == 3:
-                        funding_round.goal_1_finished = True
-                        post.goal_text = funding_round.goal_3
-                    funding_round.save()
                 post.save()
-                goal_accomplished = form.cleaned_data['goal_accomplished']  
             except:
                 form.add_error(None, "Form submission error. Try again. If this problem persists, contact support.") #form error 
         else:
-            context['form'] = feed.forms.PostForm()
+            goals= Goal.objects.filter(funding_round=funding_round, accomplished=False)
+            context['form'] = feed.forms.PostForm(goals=goals)
         return render(request, 'feed/post.html', context) #GET-request redirect
     else:
         return HttpResponse("Unauthorized action") #non-creator error
@@ -135,31 +125,15 @@ def editPostView(request, post_identifier):
         form = feed.forms.PostUpdateForm(request.POST, request.FILES)
         if form.is_valid():
             try:
+                post_edit = Post(
+                    id = post.pk,
+                    title = form.cleaned_data['title'],
+                    text = form.cleaned_data['text'],
+                    pfile = form.cleaned_data['pfile'],
+                    goal_accomplished = form.cleaned_data['goal_accomplished']
+                    )
                 if form.cleaned_data['pfile'] is not None:
-                    post_edit = Post(
-                        id = post.pk,
-                       title = form.cleaned_data['title'],
-                       text = form.cleaned_data['text'],
-                       pfile = form.cleaned_data['pfile'],
-                    )
-                else:
-                    post_edit = Post(
-                        id = post.pk,
-                        title = form.cleaned_data['title'],
-                        text = form.cleaned_data['text']
-                    )
-                if form.cleaned_data['goal_accomplished'] is None:
-                    post.goal_accomplished = True
-                    if goal_accomplished==1:
-                        funding_round.goal_1_finished = True
-                        post_edit.goal_text = funding_round.goal_1
-                    elif goal_accomplished == 2:
-                        funding_round.goal_1_finished = True
-                        post_edit.goal_text = funding_round.goal_2
-                    elif goal_accomplished == 3:
-                        funding_round.goal_1_finished = True
-                        post_edit.goal_text = funding_round.goal_3
-                    funding_round.save()
+                    post_edit.pfile=form.cleaned_data['pfile']
                 post_edit.save()
             except:
                 form.add_error(None, "Unknown Error occured. Please try again later or contact support.")
@@ -167,10 +141,11 @@ def editPostView(request, post_identifier):
             form.add_error(None, 'Try again.')
         context['form'] = form
     else:
-        context['form'] = feed.forms.PostUpdateForm(initial={'title': post.title, 'text': post.text}) #<- fill
+        goals= Goal.objects.filter(funding_round=funding_round, accomplished=False)
+        context['form'] = feed.forms.PostUpdateForm(goals=goals, initial={'title': post.title, 'text': post.text}) #<- fill
     return render(request, 'feed/edit.html', context)
 
-#build discover on top of search view
+
 
 #accepts three optional GET parameters (query, country, and page_number), if query and country are None, the "explore" selection is returned
 def searchView(request)
@@ -194,9 +169,10 @@ def searchView(request)
             country = form.cleaned_data['country']
     if query is None:
         query = ''
-    matches = Project.objects.filter(Q(name__contains=query) | Q(problem__countains=query) | Q(solution__countains=query) | Q(info__countains=query)).order_by('-seeking_funding', '-views')
+    matches = Project.objects.filter(Q(name__contains=query) | Q(problem__countains=query) | Q(solution__countains=query) | Q(info__countains=query)).order_by('-seeking_funding', '-views', '-likes')
     if country is not None:
         matches = matches.filter(country=country)
+    
     paginator = Paginator(matches, 20)
     #context['all-projects'] = matches
     try:
@@ -207,4 +183,52 @@ def searchView(request)
         context['projects'] = paginator.page(paginator.num_pages)
     return render(request, 'feed/search.html', context)
 
+@login_required
+def likeView(request, content_type, content_id):
+    if content_type == 'post':
+        try:
+            post = Post.objects.get(pk=content_id)
+        except:
+            return JsonResponse({'status': 'error', 'message': '404: Post not found'})
+        if Like.objects.filter(actor=request.user, target_post=post) is None:
+            like = Like(actor = request.user, target_post = post)
+            like.save()
+    elif content_type == 'project':
+        try:
+            project = Project.objects.get(pk=content_id)
+        except:
+            return JsonResponse({'status': 'error', 'message': '404: Project not found'})
+        if Like.objects.filter(actor=request.user, target_project=project) is None:
+            like = Like(actor = request.user, target_project=project)
+            like.save()
+    else:
+        return JsonResponse({'status': 'error', 'message': 'invalid content type'})
+    return JsonResponse({'status': 'success', 'message': 'ok'})
+
+@login_required
+def unlikeView(request, content_type, content_id):
+    if content_type == 'post':
+        try:
+            post = Post.objects.get(pk=content_id)
+        except:
+            return JsonResponse({'status': 'error', 'message': '404: Post not found'})
+        like = Like.objects.filter(actor=request.user, target_post=post):
+        if like is not None:
+            p = like.first()
+            p.delete()
+    elif content_type == 'project':
+        try:
+            project = Project.objects.get(pk=content_id)
+        except:
+            return JsonResponse({'status': 'error', 'message': '404: Project not found'})
+        like = Like.objects.filter(actor=request.user, target_project=project):
+        if like is not None:
+            p = like.first()
+            p.delete()
+    else:
+        return JsonResponse({'status': 'error', 'message': 'invalid content type'})
+    return JsonResponse({'status': 'success', 'message': 'ok'})
+    
+
+    
 

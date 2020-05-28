@@ -20,7 +20,8 @@ class Project(models.Model):
     seeking_funding = models.BooleanField(default=True)
     views = models.IntegerField(default=0)
     followers = models.IntegerField(default=0)
-
+    likes = models.IntegerField(default=0)
+    looking_for= models.ManyToManyField(Collaborator, null=True, blank=True)
     def __str__(self):
         return self.name
     def get_absolute_url(self): 
@@ -34,12 +35,6 @@ class FundingRound(models.Model, activity.Activity):
     round_number = models.IntegerField(default = 1)
     funding_goal = models.IntegerField()
     total_raised = models.IntegerField(default=0)
-    goal_1 = models.TextField()
-    goal_1_finished = models.BooleanField(default=False)
-    goal_2 = models.TextField()
-    goal_2_finished = models.BooleanField(default=False)
-    goal_3 = models.TextField()
-    goal_3_finished = models.BooleanField(default=False)
     info = models.TextField()
     video = models.FileField(blank=True, null=True)
     note = models.TextField(blank=True, null=True)
@@ -60,7 +55,13 @@ class Category(models.Mode):
     def __str__(self):
         return self.title
 
+class Collaborator(models.Model):
+    function = models.CharField(max_length=32)
 
+class Goal(models.Model):
+    text = models.TextField()
+    accomplished = models.BooleanField(default=False)
+    funding_round = models.ForeignKey(FundingRound, on_delete=models.CASCADE)
 
 #class ErrorReport(models.Model):
  #   user = models.ForeignKey(User, on_delete=models.SET_NULL)
