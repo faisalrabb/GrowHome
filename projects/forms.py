@@ -8,20 +8,20 @@ class ProjectForm(forms.Form):
     name = forms.CharField(max_length=80)
     problem = forms.CharField()
     solution = forms.CharField()
-    category = forms.ChoiceField(choices=Category.objects.all())
+    category = forms.ChoiceField(choices=Category.objects.all(), required=False, empty_value=None)
     info = forms.CharField()
     video = forms.FileField(validators=[validate_file])
     photo = forms.ImageField(validators=[validate_image])
     looking_for = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=Collaborator.objects.all())
 
 class FundingRoundForm(forms.Form):
-    funding_goal = forms.IntegerField(max_value=20000)
+    funding_goal = forms.IntegerField(max_value=10000)
     goal_1 = forms.CharField()
     goal_2 = forms.CharField()
     goal_3 = forms.CharField()
     info = forms.CharField()
-    video = forms.FileField(validators=[validate_file])
-    note = forms.CharField(blank=True)
+    video = forms.FileField(validators=[validate_file], required=False, empty_value=None)
+    note = forms.CharField(required=False, empty_value=None)
 
 class FundingRoundUpdateForm(forms.Form):
     funding_goal = forms.IntegerField(max_value=20000)
@@ -29,7 +29,7 @@ class FundingRoundUpdateForm(forms.Form):
     video = forms.FileField(validators=[validate_file])
     note = forms.CharField(blank=True)
 
-class GoalForm(forms.Form):
+class AddGoalForm(forms.Form):
     text = forms.CharField()
 
 def validate_file (value): 

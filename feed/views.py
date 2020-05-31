@@ -11,8 +11,10 @@ from django.core.paginator import Paginator
 enricher = Enrich()
 
 
-@login_required
+
 def index(request):
+    if !request.user.is_authenticated:
+        return redirect(reverse('about:index'))
     feeds = feed_manager.get_news_feeds(request.user.id)
     activities = feeds.get('timeline').get()['results']
     enriched_activities = enricher.enrich_activities(activities)
@@ -77,6 +79,7 @@ def postView(request, pid):
             try:
                 post = Post(
                 project = project,
+                poster = request.user
                 funding_round = funding_round,
                 title = form.cleaned_data['title'],
                 text = form.cleaned_data['text'],

@@ -45,6 +45,7 @@ def entSignup(request):
                     address = useraddress,
                     phone_number = form.cleaned_data['phone_number'],
                     profile_picture = form.cleaned_data['profile_picture'],
+                    about = form.cleaned_data['about_you'],
                     #identification = userid
                 )
                 entrepeneur.save()
@@ -150,6 +151,7 @@ def profileView(request):
         context['type'] = "Entrepeneur"
     conext['country'] = user_obj.country
     context['liked'] = Like.objects.filter(actor=user)
+    context['following'] = Follow.objects.filter(actor=user)
     return render(request, 'account/view.html', context)
 
 

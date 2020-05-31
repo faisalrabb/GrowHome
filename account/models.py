@@ -7,6 +7,7 @@ from django.contrib.auth import user
 class Entrepeneur(models.Model): 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL)
+    about = models.TextField(null=True, blank=True)
     address = models.TextField()
     phone_number = models.CharField(max_length =15)
     #identification = models.OneToOneField(Identification, on_delete=models.SET_NULL)

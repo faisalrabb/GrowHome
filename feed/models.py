@@ -14,6 +14,7 @@ class Follow(models.Model, activity.Activity):
 
     class Meta:
         unique_together = ('actor', 'target')
+        ordering = ['-created_at']
     def activity_actor_attr(self):
         return self.actor
     @property
@@ -23,12 +24,14 @@ class Follow(models.Model, activity.Activity):
 
 class Like(models.Model, activity.Activity):
     actor = models.ForeignKey(User, on_delete=models.CASCADE)
-    #only a post or a project will be non-null value 
+    #only post or a project will be non-null value 
     post = models.ForeignKey(Post, on_delete=models.CASCADE, blank=True, null=True)
     project =  models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('actor', 'target_post', 'target_project')
+        ordering = ['-created_at']
     def activity_actor_attr(self):
         return self.actor
     @property
@@ -41,7 +44,8 @@ class Like(models.Model, activity.Activity):
 
 class Post(models.Model, activity.Activity):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    funding_round=models.ForeignKey(FundingRound, on_delete=models.SET_NULL)
+    poster = models.ForeignKey(User, on_delete=models.CASCADE)
+    funding_round=models.ForeignKey(FundingRound, on_delete=models.SET_NULL, blank=True, null=True)
     post_identifier = RandomCharField(max_length=10)
     title = models.CharField(max_length=250, blank=True, null=True)
     text = models.TextField()
@@ -54,5 +58,9 @@ class Post(models.Model, activity.Activity):
     def activity_actor_attr(self):
         #activity actor is project
         return self.project
+    class Meta:
+        ordering = ['created_at']
 
+class Comment(models.Model, activity.Activity):
+    actor = 
 
