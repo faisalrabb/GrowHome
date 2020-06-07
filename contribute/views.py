@@ -35,7 +35,6 @@ def index(request):
             except:
                 #if no such project is found, redirect them to the homepage
                 return redirect(reverse('feed:index'))
-
     else:
         form = contribute.forms.PaymentForm(request.POST)
         if form.is_valid():
@@ -66,7 +65,7 @@ def index(request):
     }
     context['form'] = PayPalPaymentsForm(initial=paypal_dict)
     context['pledge'] = pledge
-    context['change_form'] = forms.PaymentForm(initial={'amount': pledge.amount})
+    context['change_form'] = forms.PledgeForm(initial={'amount': pledge.amount})
     request.session['pledge-id'] = pledge.id
     return render(request, 'contribute/process.html', context)
     #note about process: shows pledge info, change_form for changing the payment, which posts to the edit_pledge view, and the paypal payment form which posts to paypal

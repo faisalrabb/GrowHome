@@ -10,6 +10,7 @@ class Entrepeneur(models.Model):
     about = models.TextField(null=True, blank=True)
     address = models.TextField()
     phone_number = models.CharField(max_length =15)
+    bio = models.TextField()
     #identification = models.OneToOneField(Identification, on_delete=models.SET_NULL)
 
     def __str__(self):
@@ -25,6 +26,7 @@ class Contributor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.SET_NULL)
     profile_picture = models.ImageField(upload_to='/photos')
+    bio=models.TextField(null=True, blank=True)
     #following = models.ManyToManyField(Entrepeneur, related_name='following', null=True, blank=True)
 
     def __str__(self):

@@ -5,7 +5,7 @@ from django_extensions.db.fields import AutoSlugField
 
 # Create your models here.
 
-class Project(models.Model):
+class Project(models.Model, activity.Activity):
     creator = models.ForeignKey(Entrepeneur, on_delete=models.CASCADE)
     name = models.CharField(unique=True, max_length=80)
     problem = models.TextField()
@@ -21,9 +21,11 @@ class Project(models.Model):
     slug = AutoSlugField(populate_from='name')
     seeking_funding = models.BooleanField(default=False)
     views = models.IntegerField(default=0)
-    followers = models.IntegerField(default=0)
-    likes = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def activity_actor_attr(self):
+        return creator.user
     def __str__(self):
         return self.name
     def get_absolute_url(self): 
@@ -31,6 +33,21 @@ class Project(models.Model):
     class Meta:
         get_latest_by = "created_at"
         ordering = ['-created_at']
+    @property
+    def like_instances(self):
+        return Like.objects.filter(project=self)
+    @property
+    def likes(self):
+        likes = Like.objects.filter(project=self)
+        return likes.count()
+    @property
+    def followers(self):
+        follows = Follow.objects.filter(project=self)
+        return follows.count()
+    @property
+    def followers_instances (self):
+        follows = Follow.objects.filter(project=self)
+        return follows
     
 class FundingRound(models.Model, activity.Activity):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -49,8 +66,13 @@ class FundingRound(models.Model, activity.Activity):
     class Meta:
         get_latest_by = "created_at"
         ordering = ['-round_number']
+    @property
     def activity_actor_attr(self):
         return self.project
+    @property
+    def activity_author_feed(self):
+        return "projects"
+
     def __str__(self):
         pr = self.project.__str__()
         final = pr + str(self.round_number)

@@ -44,23 +44,71 @@ class Like(models.Model, activity.Activity):
 
 class Post(models.Model, activity.Activity):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    poster = models.ForeignKey(User, on_delete=models.CASCADE)
     funding_round=models.ForeignKey(FundingRound, on_delete=models.SET_NULL, blank=True, null=True)
     post_identifier = RandomCharField(max_length=10)
     title = models.CharField(max_length=250, blank=True, null=True)
     text = models.TextField()
     pfile = models.FileField(upload_to='gallery', null=True, blank=True)
     goal_accomplished = models.ForeignKey(Goal, on_delete=models.SET_NULL, blank=True,null=True)
-    goal_text= models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    likes = models.IntegerField(default=0)
-
+    
+    @property
     def activity_actor_attr(self):
         #activity actor is project
         return self.project
+    @property
+    def activity_author_feed(self):
+        return "projects"
     class Meta:
         ordering = ['created_at']
+    def get_absolute_url(self):
+        return "/posts/%i/" % self.id
+    @property
+    def comments(self):
+        comments = Comment.objects.filter(target=self)
+        return comments
+    @property
+    def likes(self):
+        likes = Like.objects.filter(post=self)
+        return likes.count()
+    @property
+    def like_instances(self):
+        return Like.objects.filter(post=self)
+    @property
+    def poster(self):
+        return self.project.creator.user
 
-class Comment(models.Model, activity.Activity):
-    actor = 
+class Comment(models.Model):
+    actor = models.ForeignKey(User, on_delete=models.CASCADE)
+    target = models.ForeignKey(Post, on_delete=models.CASCADE)
+    text = models.TextField()
+
+    @property
+    def is_project_creator(self):
+        if actor == target.poster:
+            return True
+        else return False
+    
+    @property
+    def comment_replies(self):
+        return CommentReply.objects.filter(target = self)
+
+    def get_absolute_url(self):
+        return target.get_absolute_url()
+    
+class CommentReply(models.Model):
+    actor = models.ForeignKey(User, on_delete=models.CASCADE)
+    target = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    text = models.TextField()
+
+    @property
+    def is_project_creator(self):
+        if actor == target.target.poster:
+            return True
+        else return False
+    def get_absolute_url(self):
+        return target.target.get_absolute_url()
+
+
+    
 

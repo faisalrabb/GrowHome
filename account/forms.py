@@ -6,7 +6,7 @@ class EntrepeneurSignup(forms.Form):
     first_name = forms.CharField()
     last_name = forms.CharField()
     username = forms.CharField(max_length = 30, validators=[validate_username])
-    about_you forms.CharField(required=False)
+    bio = forms.CharField()
     e-mail = form.CharField(validators=[validate_email, validate_email_extension])
     password = forms.CharField(max_length=32, widget=forms.PasswordInput)
     confirm_password = forms.CharField(max_length=32, widget=forms.PasswordInput)
@@ -28,6 +28,7 @@ class ContributorSignup(forms.Form):
     first_name = forms.CharField()
     last_name = forms.CharField()
     username = forms.CharField(max_length = 30, validators=[validate_username])
+    bio = forms.CharField(required=False)
     country = forms.ChoiceField(choices = Country.objects.all())
     e-mail = form.CharField(validators=[validate_email, validate_email_extension])
     password = forms.CharField(max_length=32, widget=forms.PasswordInput)
@@ -42,6 +43,9 @@ class ContributorSignup(forms.Form):
 class SignInForm(forms.Form):
     username = forms.CharField(max_length=30)
     password = forms.CharField(max_length =32)
+
+class BioUpdateForm(forms.Form):
+    text = forms.TextField()
 
 ######## django contrib-auth has views for this
 class PasswordChangeForm(forms.Form):

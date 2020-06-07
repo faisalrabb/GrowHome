@@ -167,7 +167,12 @@ def viewProject(request, slug):
         past_rounds = fundingrounds.exclude(pk=fundinground.pk)
         context['past_rounds'] = past_rounds
     context['project'] = project
-    context['posts'] = Post.objects.filter(project=project)
+    #
+    feed = feed_manager.get_feed('project', project.id)
+    activities = feed.get()['results']
+    enriched_activities = enricher.enrich_activities(activities)
+    context['activities'] = enriched_activities
+    #
     request.session['pid'] = project.id
     if request.user.is_authenticated:
         if request.user == project.creator.user:

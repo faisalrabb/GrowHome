@@ -5,21 +5,16 @@ app_name = 'feed'
 urlpatterns = [
 	path('', feed.views.index, name='index'),
     path('new/<int:pid>/', feed.views.postView, name='post'),
-    path('follow/<str:fusername>/', feeds.views.followView, name='follow'),
-    path('unfollow/<str:fusername>/', feeds.views.unfollowView, name ='unfollow')
     path('delete/<int:post_identifier>/', feeds.views.deletePostView, name='delete'),
     path('edit/<int:post_identifier>/', feeds.views.editPostView, name='edit'),
-    #the rest of the url patterns are search
+    path('follow/<int:pid>/', feeds.views.followView, name='follow'),
+    path('unfollow/<int:pid>/', feeds.views.unfollowView, name ='unfollow')
+    path('posts/<int:pid>', feeds.views.postDisplayView)
     path('search/', feeds.views.searchView, name='search'),
     path('explore/', feeds.views.searchView, name='explore'),
-    path('explore/<int:page_number>/', feeds.views.searchView),
-    path('search/<int:page_number>/', feeds.views.searchView),
-    path('search/<str:query>/', feeds.views.searchView),
-    path('search/<str:country_name>/', feeds.views.searchView),
-    path('search/<str:query>/<int:page_number>/', feeds.views.searchView),
-    path('search/<str:query>/<str: country_name>/<int:page_number>/', feeds.views.searchView),
-    path('search/<str:query>/<str:country_name>/', feeds.views.searchView),
-    path('search/<str:country_name>/<int:page_number>/', feeds.views.searchView),
+    path('comment/new/<int:pid>/', feeds.views.comment_on_post),
+    path('comment/reply/<int:pid>/', feeds.views.comment_on_comment),
+    
 ]
 
 #pid -> project-id

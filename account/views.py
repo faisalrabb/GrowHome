@@ -46,6 +46,7 @@ def entSignup(request):
                     phone_number = form.cleaned_data['phone_number'],
                     profile_picture = form.cleaned_data['profile_picture'],
                     about = form.cleaned_data['about_you'],
+                    bio = form.cleaned_data['bio'],
                     #identification = userid
                 )
                 entrepeneur.save()
@@ -83,6 +84,7 @@ def contribSignup(request):
                 contributor = Contributor(
                     user = user,
                     country = form.cleaned_data['country'],
+                    bio = form.cleaned_data['bio']
                 )
                 contributor.save()
                 return HttpResponseRedirect(reverse('account:login'))
@@ -131,9 +133,10 @@ def profileView(request):
     if slug is None:
         if request.user.is_authenticated:
             user=request.user
+            context['bio_update_form'] = account.forms.BioUpdateForm()
             context['contributions'] = Contribution.objects.filter(actor=request.user)
         else:
-            return redirect(reverse('feed:index'))
+            return redirect(reverse('feed:index')) #if no slug is passed and user is not logged in
     else:
         try:
             user = User.objects.get(username=slug)
@@ -150,11 +153,29 @@ def profileView(request):
         context['projects'] = projects
         context['type'] = "Entrepeneur"
     conext['country'] = user_obj.country
-    context['liked'] = Like.objects.filter(actor=user)
+    #
+    feed = feed_manager.get_feed('user', request.user.id)
+    activities = feed.get()['results']
+    enriched_activities = enricher.enrich_activities(activities)
+    context['activities'] = enriched_activities
+    #
     context['following'] = Follow.objects.filter(actor=user)
     return render(request, 'account/view.html', context)
 
 
+def update_bio(request):
+    if form.method == 'POST' and request.user.is_authenticated:
+        form = account.forms.BioUpdateForm(request.POST)
+        if form.is_valid():
+            try:
+                user_object = Contributor.objects.get(user=request.user)
+            except:
+                user_object = Entrepeneur.objects.get(user=request.user)
+            user_object.bio = form.cleaned_data['bio']
+            user_object.save()
+            return JsonResponse({'status': 'success', 'message': 'success'})
+    return JsonResponse('status': 'error', 'message': 'unknown error')
+    
 #not really meant for use at this stage
 #@login_required
 #def becomeEntrepeneurView(request):
