@@ -1,7 +1,7 @@
 from django import forms
 from account.models import Country, user
 
-class EntrepeneurSignup(forms.Form): 
+class EntrepreneurSignup(forms.Form): 
     invite_code = forms.CharField()
     first_name = forms.CharField()
     last_name = forms.CharField()
@@ -48,16 +48,18 @@ class BioUpdateForm(forms.Form):
     text = forms.TextField()
 
 ######## django contrib-auth has views for this
-class PasswordChangeForm(forms.Form):
-    old_password = forms.CharField()
-    new_password = forms.CharField()
-    confirm_password = forms.CharField()
-
-    def clean(self):
-        cleaned_data = super(ContributorSignup, self).clean()
-        if 'new_password' in cleaned_data and 'confirm_password' in cleaned_data and cleaned_data['new_password'] != cleaned_data['confirm_password']:
-            self.add_error('confirm_password', 'Passwords do not match')
-        return cleaned_data
+#
+#class PasswordChangeForm(forms.Form):
+#    old_password = forms.CharField()
+#    new_password = forms.CharField()
+#    confirm_password = forms.CharField()
+#
+#    def clean(self):
+#        cleaned_data = super(ContributorSignup, self).clean()
+#        if 'new_password' in cleaned_data and 'confirm_password' in cleaned_data and cleaned_data['new_password'] != cleaned_data['confirm_password']:
+#            self.add_error('confirm_password', 'Passwords do not match')
+#        return cleaned_data
+#
 #########
 
 

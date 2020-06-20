@@ -51,7 +51,7 @@ class Project(models.Model, activity.Activity):
     
 class FundingRound(models.Model, activity.Activity):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    round_number = models.IntegerField(default = 1, unique=True)
+    round_number = models.IntegerField(default = 1)
     funding_goal = models.IntegerField()
     total_raised = models.IntegerField(default=0)
     info = models.TextField()
@@ -66,12 +66,16 @@ class FundingRound(models.Model, activity.Activity):
     class Meta:
         get_latest_by = "created_at"
         ordering = ['-round_number']
+        unique_together = ['round_number', 'project']
     @property
     def activity_actor_attr(self):
         return self.project
     @property
     def activity_author_feed(self):
         return "projects"
+    @property
+    def goals(self):
+        return Goal.objects.filter(funding_round=self)
 
     def __str__(self):
         pr = self.project.__str__()

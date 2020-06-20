@@ -275,15 +275,37 @@ def comment_on_comment(request, pid):
     return JsonResponse({'status': 'error'})
         
 #template view
-def postDisplayView(request,pid):
+def postDisplayView(request,post_identifier):
     context={}
     try:
-        post = Post.objects.get(post_identifier=poid)
+        post = Post.objects.get(post_identifier=post_identifier)
     except:
         raise Http404
     context['post'] = post
     context['comments'] = Comment.objects.filter(post=post)
     return render(request, 'feed/post.html', context)
+
+@login_required
+def deleteCommentView(request, pid):
+    comments = []
+    try:
+        com = Comment.objects.get(id=pid)
+        comment.append(com)
+    except:
+        com = None
+    try: 
+        comrep = Comment.objects.get(id=pid)
+        comment.append(comrep)
+    except:
+        comrep = None
+    for comment in comments:
+        if comment.author == request.user:
+            comment.delete()
+            break
+    return JsonResponse({'status' : 'success', 'message':'success'})
+
+
+
 
 
 

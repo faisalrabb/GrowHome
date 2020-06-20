@@ -82,7 +82,10 @@ class Comment(models.Model):
     actor = models.ForeignKey(User, on_delete=models.CASCADE)
     target = models.ForeignKey(Post, on_delete=models.CASCADE)
     text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['created_at']
     @property
     def is_project_creator(self):
         if actor == target.poster:
@@ -100,6 +103,7 @@ class CommentReply(models.Model):
     actor = models.ForeignKey(User, on_delete=models.CASCADE)
     target = models.ForeignKey(Comment, on_delete=models.CASCADE)
     text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     @property
     def is_project_creator(self):
@@ -108,6 +112,9 @@ class CommentReply(models.Model):
         else return False
     def get_absolute_url(self):
         return target.target.get_absolute_url()
+
+    class Meta:
+        ordering = ['created_at']
 
 
     
