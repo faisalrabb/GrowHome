@@ -8,11 +8,11 @@ class ProjectForm(forms.Form):
     name = forms.CharField(max_length=80)
     problem = forms.CharField()
     solution = forms.CharField()
-    category = forms.ChoiceField(choices=Category.objects.all(), required=False, empty_value=None)
+    category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False, empty_value=None)
     info = forms.CharField()
     video = forms.FileField(validators=[validate_file])
     photo = forms.ImageField(validators=[validate_image])
-    looking_for = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=Collaborator.objects.all())
+    looking_for = forms.ModelMultipleChoiceField(widget=forms.CheckboxSelectMultiple, queryset=Collaborator.objects.all())
 
 class FundingRoundForm(forms.Form):
     funding_goal = forms.IntegerField(max_value=10000)

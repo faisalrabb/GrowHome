@@ -15,7 +15,7 @@ enricher = Enrich()
 def index(request):
     context={}
     if not request.user.is_authenticated:
-        return redirect(reverse('about:index'))
+        return redirect(reverse('feed/about.html'))
     #
     feed = feed_manager.get_feed('timeline', request.user.id)
     activities = feed.get(limit=50)['results']
@@ -288,16 +288,12 @@ def postDisplayView(request,post_identifier):
 @login_required
 def deleteCommentView(request, pid):
     comments = []
-    try:
-        com = Comment.objects.get(id=pid)
-        comment.append(com)
-    except:
-        com = None
-    try: 
-        comrep = Comment.objects.get(id=pid)
-        comment.append(comrep)
-    except:
-        comrep = None
+    com = Comment.objects.filter(id=pid)
+    if com is not None:
+        comments.append(com.first())
+    comrep = CommentReply.objects.filter(id=pid)
+    if comrep is not None:
+        comments.append(comrep.first())
     for comment in comments:
         if comment.author == request.user:
             comment.delete()

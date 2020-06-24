@@ -174,7 +174,15 @@ def viewProject(request, slug):
     context['activities'] = enriched_activities
     #
     request.session['pid'] = project.id
+    like = False
+    follow = False
     if request.user.is_authenticated:
+        liked = Like.objects.filter(actor=request.user, target=project)
+        followed = Follow.objects.filter(actor=request.user, target=project)
+        if liked is not None:
+            like = True
+        if followed is not None:
+            follow = True     
         if request.user == project.creator.user:
             context['post_form'] = feed.forms.PostForm()
             if fundingrounds is not None:
@@ -184,6 +192,8 @@ def viewProject(request, slug):
         else:
             context['is_creator'] = False
             context['pledge_form'] = contribute.forms.PledgeForm()
+    context['liked'] = like
+    context['following'] = follow
     return render(request, 'projects/view.html', context) #success redirect
 
 @login_required
