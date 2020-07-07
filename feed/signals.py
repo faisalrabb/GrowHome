@@ -1,7 +1,7 @@
 from feed.models import Follow, Post
-from account.models import Entrepeneur, User, Contributor
-from projects.models import Project
-from django.db.models.signals import post_save
+from account.models import Entrepreneur, User, Contributor
+from projects.models import Project, Goal, FundingRound
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from stream_django.feed_manager import feed_manager
 
@@ -44,7 +44,7 @@ def follow(sender, instance, created, **kwargs):
 #        else:
 #            instance.target_post.likes -= 1
 
-@receiver(pre_save, sender=Post)
+@receiver(pre_delete, sender=Post)
 def uncheck_goals(sender, instance, created, **kwargs):
     goal = instance.goal_accomplished
     if goal is not None:
@@ -52,7 +52,7 @@ def uncheck_goals(sender, instance, created, **kwargs):
         instance.goal_accomplished.save()
 
 @receiver(post_save, sender=Post)
-def uncheck_goals(sender, instance, created, **kwargs):
+def check_goals(sender, instance, created, **kwargs):
     goal = instance.goal_accomplished
     if goal is not None:
         instance.goal_accomplished.accomplished = True
@@ -65,7 +65,7 @@ def follow_own(sender, instance, created, **kwargs):
         follow = Follow(actor=user, target=instance)
         follow.save()
 
-@receiver(post_save, sender=Entrepeneur)
+@receiver(post_save, sender=Entrepreneur)
 @receiver(post_save, sender=Contributor)
 def follow_local(sender, instance, created, **kwargs):
     if created:

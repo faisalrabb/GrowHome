@@ -1,11 +1,14 @@
-lfrom django.shortcuts import render
+from django.shortcuts import render
 from stream_django.feed_manager import feed_manager
-from account.models import User, Entrepeneur, Contributor
+from account.models import User, Entrepreneur, Contributor
 from projects.models import Project, FundingRound
-from feed.forms import PostForm, PostUpdateForm
+from feed.forms import PostForm
 from stream_django.enrich import Enrich
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 
 enricher = Enrich()
@@ -22,10 +25,10 @@ def index(request):
     enriched_activities = enricher.enrich_activities(activities)
     context['activities'] = enriched_activities
     #
-    notification_feed = feed_manager.get_notification_feed(request.user.id)
-    notifications = notification_feed.get(limit=50)['results']
-    notifications_enriched = enricher.enrich_activities(notifications)
-    context['notifications'] = notifications_enriched
+    #notification_feed = feed_manager.get_notification_feed(request.user.id)
+    #notifications = notification_feed.get(limit=50)['results']
+    #notifications_enriched = enricher.enrich_activities(notifications)
+    #context['notifications'] = notifications_enriched
     return render(request, 'feed/index.html', context)
 
 
@@ -41,7 +44,7 @@ def followView(request, pid):
     if follow is None:
         try: 
             follow = Follow(
-                actor = request.user
+                actor = request.user,
                 target = proj
             )
             follow.save()
@@ -71,14 +74,16 @@ def unfollowView(request, pid):
 def postView(request, pid):
     context={}
     try:
-        ent = Entrepeneur.objects.get(user=request.user)
+        ent = Entrepreneur.objects.get(user=request.user)
         project = Project.objects.get(creator=ent, pk=pid)
     except:
         return JsonResponse({'status': 'error', 'message': 'Error submitting form'}) #raise Http404?
-    if request.method=='GET':
-        return JsonResponse({'status': 'error', 'message': 'Bad request'})
-    try:
-        funding_round = FundingRound.objects.filter(project=project).latest()
+    if request.method=='POST':
+        funding_rounds = FundingRound.objects.filter(project=project)
+        if funding_rounds is not None:
+            funding_round = funding_rounds.latest()
+        else:
+            funding_round = None
         form = feeds.forms.PostForm(request.POST, request.FILES)
         if form.is_valid():
             try:
@@ -91,15 +96,18 @@ def postView(request, pid):
                     goal_accomplished= form.cleaned_data['goal_accomplished']
                 )
                 post.save()
-    return JsonResponse({'status': 'success', 'message': 'Success!'})
+                return JsonResponse({'status': 'success', 'message': 'success'})
+            except:
+                pass
+    return JsonResponse({'status': 'error', 'message': 'error'})
 
 #redirect view
 @login_required
 def deletePostView(request, post_identifier):
     try:
-        actor = Entrepeneur.objects.get(user=request.user)
+        actor = Entrepreneur.objects.get(user=request.user)
     except:
-        return redirect(reverse('feed:index'))#non-entrepeneur redirect
+        return redirect(reverse('feed:index'))#non-entrepreneur redirect
     try:
         post = Post.objects.get(post_identifier=post_identifier)
     except:
@@ -113,9 +121,9 @@ def deletePostView(request, post_identifier):
 @login_required
 def editPostView(request, post_identifier):
     try:
-        actor = Entrepeneur.objects.get(user=request.user)
+        actor = Entrepreneur.objects.get(user=request.user)
     except:
-        return HttpResponseRedirect(reverse('feed:index')) #Non-entrepeneur redirect
+        return HttpResponseRedirect(reverse('feed:index')) #Non-entrepreneur redirect
     try:
         post = Post.objects.get(post_identifier=post_identifier)
         funding_round = post.funding_round
@@ -145,7 +153,7 @@ def editPostView(request, post_identifier):
 
 #template view
 #handles search and explore pages and functionality
-def searchView(request)
+def searchView(request):
     context={}
     form = feeds.forms.SearchForm(request.GET)
     if form.is_valid():
@@ -180,7 +188,7 @@ def searchView(request)
     except EmptyPage:
         page = paginator.page(paginator.num_pages)
     context['projects'] = page
-    context['form'] = feeds.forms.SearchForm(initial={'page_number': page.number, 'query'=query,'country'=country,'looking_for': looking_for})
+    context['form'] = feeds.forms.SearchForm(initial={'page_number': page.number, 'query': query,'country':country,'looking_for': looking_for})
     return render(request, 'feed/search.html', context)
 
 #JSON view
@@ -214,7 +222,7 @@ def unlikeView(request, content_type, content_id):
             post = Post.objects.get(pk=content_id)
         except:
             return JsonResponse({'status': 'error', 'message': '404: Post not found'})
-        like = Like.objects.filter(actor=request.user, target_post=post):
+        like = Like.objects.filter(actor=request.user, target_post=post)
         if like is not None:
             p = like.first()
             p.delete()
@@ -223,7 +231,7 @@ def unlikeView(request, content_type, content_id):
             project = Project.objects.get(pk=content_id)
         except:
             return JsonResponse({'status': 'error', 'message': '404: Project not found'})
-        like = Like.objects.filter(actor=request.user, target_project=project):
+        like = Like.objects.filter(actor=request.user, target_project=project)
         if like is not None:
             p = like.first()
             p.delete()

@@ -1,11 +1,30 @@
 from django.db import models
 
+from account.models import User
+from projects.models import Project, FundingRound
+
 # Create your models here.
 
-class Contribution(models.Model):
+
+class Pledge(models.Model):
     actor = models.ForeignKey(User, on_delete=models.CASCADE)
-    funding_round = models.ForeignKey(Project, on_delete=models.SET_NULL)
+    funding_round = models.ForeignKey(Project, on_delete=models.CASCADE)
     amount = models.IntegerField()
+    fulfilled = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now=True)
+
+    class Meta():
+        ordering = ['-created_at']
+
+
+class Contribution(models.Model):
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    funding_round = models.ForeignKey(FundingRound, on_delete=models.PROTECT)
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, null=True)
+    amount_total = models.IntegerField(default=0)
+    amount_after_paypal_fee = models.IntegerField(default=0)
+    amount_final = models.IntegerField(default=0)
+    gh_fee_amount = models.IntegerField(default=0)
     currency=models.CharField(max_length=10)
     pledge = models.ForeignKey(Pledge, on_delete=models.SET_NULL, null=True, blank=True)
     ipn_sender_email = models.EmailField(null=True, blank=True)
@@ -17,14 +36,6 @@ class Contribution(models.Model):
         ordering = ['-created_at']
 
 
-class Pledge(models.Model):
-    actor = models.ForeignKey(User, on_delete=models.CASCADE)
-    funding_round = models.ForeignKey(Project, on_delete=models.SET_NULL)
-    amount = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta():
-        ordering = ['-created_at']
 
 class PaymentError(models.Model):
     pledge_id = models.TextField(null=True, blank=True)
@@ -40,7 +51,7 @@ class PaymentError(models.Model):
     class Meta():
         ordering = ['-created_at']
 
-class FailedPayment(models.Mode):
+class NonCompletePayment(models.Model):
     pledge_id = models.TextField(null=True, blank=True)
     ipn_sender_email = models.EmailField(null=True, blank=True)
     paypal_invoice = models.TextField(null=True, blank=True)
@@ -48,6 +59,7 @@ class FailedPayment(models.Mode):
     amount_paid = models.IntegerField(blank=True, null=True)
     error_manually_reviewed = models.BooleanField(default=False)
     currency=models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta():
         ordering = ['-created_at']
@@ -63,3 +75,10 @@ class PaymentReversal(models.Model):
 
     class Meta():
         ordering = ['-created_at']
+
+class FundingReport(models.Model):
+    time= models.DateTimeField()
+    text = models.TextField(blank=True, null=True)
+
+    class Meta():
+        get_latest_by ='time'

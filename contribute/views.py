@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 
 
@@ -10,22 +11,14 @@ def index(request):
     if method.request == 'GET':
         rdr=False
         #if a user visits this page without form submission
-        pledges = Pledge.objects.filter(actor=request.user)[:5]
+        pledges = Pledge.objects.filter(actor=request.user, fulfilled=False)
         if pledges is None:
             #if the user has no previous pledges to show information for
             rdr = True #redirect them to either their last viewed project or the homepage
         else:
             #if previous pledges exist, get the most recent unfulfilled pledge
-            i = 0
-            for pledge_ in pledges:
-                contribution = Contribution.objects.filter(pledge=pledge_)
-                if contribution is not None:
-                    i += 1
-                else:
-                    pledge = pledge_ #this line fetches the most recent unfilfilled pledge and assigns it
-                    break
-            if i = pledges.size(): #if there are no unfilfilled pledges
-                rdr = True #redirect the user
+            pledge = pledges.latest()
+            request.session['pid'] = pledge.funding_round.project.id
         if rdr == True: #if user needs to be redirected:
             try:
                 #redirect them to the last project they were viewing
@@ -36,26 +29,26 @@ def index(request):
                 #if no such project is found, redirect them to the homepage
                 return redirect(reverse('feed:index'))
     else:
-        form = contribute.forms.PaymentForm(request.POST)
+        form = contribute.forms.PledgeForm(request.POST)
         if form.is_valid():
-            pledge = Pledge.objects.filter(actor=request.user, target=project)
+            ###REWRITE THIS TO ACCOMODATE FORM RESUBMIT AND NEW FORM SUBMIT WITH MINIMAL DB QUERIES
+            pid = request.session['pid']
             try:
-                pid = request.session.get['pid']
                 project = Project.objects.get(id=pid)
-                funding_rounds = FundingRound.objects.filter(project=project)
-                funding_round = funding_rounds.latest('created_at')
-                pledge = Pledge.objects.filter(actor=request.user, target=funding_round)
-                if pledge is not None:
-                    pledge.latest().amount = form.cleaned_data['amount']
-                else:
-                    pledge = Pledge(
-                        actor = request.user
-                        funding_round = funding_round
-                        amount = form.cleaned_data['amount']
-                    )
-                pledge.save()
+                funding_round = FundingRound.objects.filter(project=project).latest()
             except:
-                return HttpResponse("An error occured. Please go back to the project page and try again.")
+                raise Http404
+            pledges = Pledge.objects.filter(actor=request.user, target=funding_round, fulfilled=False)
+            if pledges is not None:
+                pledge = pledges.latest()
+                pledge.amount = form.cleaned_data['amount']
+            else:
+                pledge = Pledge(
+                    actor = request.user,
+                    funding_round = funding_round,
+                    amount = form.cleaned_data['amount']
+                )
+            pledge.save()
     host = request.host()
     item_name = "Contribution to " + pledge.funding_round.project.__str__() + "'s latest funding round"
     paypal_dict = {
@@ -64,8 +57,9 @@ def index(request):
         'item_name': item_name,
         'invoice': str(pledge.id),
         'currency_code': 'USD',
+        'custom': pledge.funding_round.__str__(),
         'notify_url': 'https://{}{}'.format(host, reverse('paypal-ipn')),
-        'return_url': 'https://{}{}'.format(host, reverse('contribute:done')),
+        'return': 'https://{}{}'.format(host, reverse('contribute:done')),
         'cancel_return': 'https://{}{}'.format(host, reverse('contribute:canceled')),
     }
     context['form'] = PayPalPaymentsForm(initial=paypal_dict)

@@ -1,6 +1,7 @@
 from django import forms
-from projects.models import Category
+from projects.models import Category, Collaborator
 from account.models import Country
+from projects.validators import validate_image, validate_file
 
 
 class ProjectForm(forms.Form):
@@ -8,7 +9,7 @@ class ProjectForm(forms.Form):
     name = forms.CharField(max_length=80)
     problem = forms.CharField()
     solution = forms.CharField()
-    category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False, empty_value=None)
+    category = forms.ModelChoiceField(queryset=Category.objects.all(), required=False, empty_label= "Please choose a category")
     info = forms.CharField()
     video = forms.FileField(validators=[validate_file])
     photo = forms.ImageField(validators=[validate_image])
@@ -20,28 +21,15 @@ class FundingRoundForm(forms.Form):
     goal_2 = forms.CharField()
     goal_3 = forms.CharField()
     info = forms.CharField()
-    video = forms.FileField(validators=[validate_file], required=False, empty_value=None)
-    note = forms.CharField(required=False, empty_value=None)
+    video = forms.FileField(validators=[validate_file], required=False)
+    note = forms.CharField(required=False)
 
 class FundingRoundUpdateForm(forms.Form):
     funding_goal = forms.IntegerField(max_value=20000)
     info = forms.CharField()
     video = forms.FileField(validators=[validate_file])
-    note = forms.CharField(blank=True)
+    note = forms.CharField(required=False)
 
 class AddGoalForm(forms.Form):
     text = forms.CharField()
-
-def validate_file (value): 
-    if value is None:
-        raise ValidationError('This field is required', code='empty_video')
-    else if not value.endswith('.mp4'):
-        raise ValidationError('Invalid file format: videos must be mp4 format!')
-    
-
-def validate_image (value):
-    if value is None:
-        raise ValidationError('This field is required', code='empty_image')
-    else if not value.endswith('.jpeg') or value.endswith('.jpg') or value.endswith('.png')
-        raise ValidationError('Only accepted image formats are: jpg, jpeg, png')
 

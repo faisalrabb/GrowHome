@@ -35,7 +35,37 @@ STREAM_API_SECRET = 'rqexcdw88vxmmpsvhdmr8k4kcsw933mggwv34xhyu5j2pt49fqstzusuvxr
 PAYPAL_RECEIVER_EMAIL = 'sb-zjdi91796694@business.example.com'
 PAYPAL_TEST = True
 
-#@login-required decorator
+#django chatter settings
+CHANNEL_LAYERS = {
+  'default': {
+      'BACKEND': 'channels_redis.core.RedisChannelLayer',
+      'CONFIG': {
+        'hosts': [('127.0.0.1', 6379)],
+      },
+  },
+}
+
+CHATTER_BASE_TEMPLATE="templates/base.html" #<- fill real value
+
+
+#ASGI settings (for chatter I think)
+ASGI_APPLICATION = 'GrowHome.routing.application' 
+
+#Cron setting
+CRON_CLASSES = [
+    'contribute.crons.FundingReport'
+]
+
+#email settings
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'your_account@gmail.com' #<- fill
+EMAIL_HOST_PASSWORD = 'your account’s password'#<- fill
+
+#@login-required decorator setting
 LOGIN_URL = 'account/login'
 # Application definition
 
@@ -46,13 +76,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'account',
-    'contribute',
-    'projects',
-    'feed',
+    'account.apps.AccountConfig',
+    'contribute.apps.ContributeConfig',
+    'projects.apps.ProjectsConfig',
+    'feed.apps.FeedConfig',
     'stream_django',
     'django_extensions',
-    'paypal.standard.ipn'
+    'paypal.standard.ipn',
+    'django_chatter',
+    'django_cron'
 ]
 
 MIDDLEWARE = [
@@ -75,9 +107,11 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
+                'django_chatter.context_processors.get_chatroom_list',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'context_processor.get_user_data' #<- custom context processor
             ],
         },
     },
@@ -135,5 +169,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 #settings for displaying media
-MEDIA_URL = '/media'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

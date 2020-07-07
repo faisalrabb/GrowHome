@@ -1,4 +1,4 @@
-from projects.models import FundingRound
+from projects.models import FundingRound, Goal
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -41,7 +41,7 @@ def set_seeking_funding(sender, instance, created, **kwargs):
             fundingrounds = FundingRound.objects.filter(project=instance.project)
             seeking = 0
             for fundinground in fundingrounds:
-                if !fundinground.funding_finished:
+                if fundinground.funding_finished == False:
                     seeking += 1
             if seeking != 0 and instance.project.seeking_funding == False:
                 instance.project.seeking_funding = True

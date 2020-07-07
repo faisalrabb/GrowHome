@@ -3,7 +3,7 @@ from django.urls import reverse
 from feed.models import Post
 from projects.forms import ProjectForm, FundingRoundForm
 from projects.models import FundingRound, Project
-from account.models import User, Entrepeneur
+from account.models import User, Entrepreneur
 from django.contrib.auth.decorators import login_required
 from contribute.forms import PledgeForm
 from django.http import Http404
@@ -11,24 +11,33 @@ from django.http import Http404
 # Create your views here.
 
 @login_required
+def dashboard(request):
+    try:
+        ent = Entrepreneur.objects.get(user=request.user)
+    except:
+        return redirect(reverse('feed:index'))
+    context['projects'] = Project.objects.filter(creator=ent)
+    #other context things
+    return render(request, 'projects/dashboard.html', context)
+@login_required
 def newProject (request):
     context={}
     try:
-        entrepeneurInstance = Entrepeneur.objects.filter(user = request.user)
+        entrepreneurInstance = Entrepreneur.objects.filter(user = request.user)
     except:
-        return redirect(reverse(feed:index)) #non-entrepeneur redirect
+        return redirect(reverse('feed:index')) #non-entrepreneur redirect
     if request.method == 'POST':
         form = projects.forms.ProjectForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 this_project = Project(
-                    creator = entrepeneurInstance,
+                    creator = entrepreneurInstance,
                     name = form.cleaned_data['name'],
                     problem = form.cleaned_data['problem'],
                     solution = form.cleaned_data['solution'],
                     category = form.cleaned_data['category'],
                     info = form.cleaned_data['info'],
-                    country = entrepeneurInstance.country,
+                    country = entrepreneurInstance.country,
                     city = form.cleaned_data['city'],
                     intro_video = form.cleaned_data['video'],
                     photo = form.cleaned_data['photo'],
@@ -43,6 +52,15 @@ def newProject (request):
         context['form'] = projects.forms.ProjectForm()
     return render(request,'projects/new.html', context) #get/try again redirect
 
+@login_required
+def deleteProject(request, pid):
+    project = Project.objects.filter(pk=pid, creator__user=request.user)
+    if project is not None:
+        try:
+            project.first().delete()
+        except:
+            pass
+    return redirect(reverse('feed:index'))
 
 #funding round: 1. check active project, 2. check last funding round status (closed, 3 goals accomplished)
 @login_required
@@ -50,13 +68,13 @@ def newFundingRound(request, pid):
     context={}
     rnumber = 0
     try:
-        entrepeneur = Entrepeneur.objects.get(user=request.user)
-        project = Project.objects.get(pk=pid, creator=entrepeneur)
+        entrepreneur = Entrepreneur.objects.get(user=request.user)
+        project = Project.objects.get(pk=pid, creator=entrepreneur)
         fundingrounds = FundingRound.objects.filter(project=project)
         if fundingrounds is not None:
             fr = fundingrounds.latest()
             rnumber = fr.round_number
-            if fr.goals_finished = False:
+            if fr.goals_finished == False:
                 return redirect(project) #previous goals not finished redirect
     except: 
         return redirect(reverse('feed:index')) #non-owner redirect
@@ -124,7 +142,7 @@ def editFundingRound(request):
 @login_required
 def editProject(request, pid):
     try:
-        creator = Entrepeneur.objects.get(user=request.user)
+        creator = Entrepreneur.objects.get(user=request.user)
         project= Project.objects.get(pk=pid, creator=creator)
     except:
         return redirect(reverse('feed:index')) #project not found error
@@ -133,7 +151,7 @@ def editProject(request, pid):
         form = projects.forms.ProjectForm(request.POST, request.FILES)
         if form.is_valid() and form.has_changed():
             try:
-                project.name= = form.cleaned_data['name']
+                project.name = form.cleaned_data['name']
                 project.city = form.cleaned_data['city']
                 project.problem = form.cleaned_data['problem']
                 project.solution = form.cleaned_data['solution']
@@ -158,6 +176,7 @@ def viewProject(request, slug):
     try:
         project = Project.objects.get(slug=slug)
         project.views += 1
+        project.save()
     except:
         raise Http404("Project not found") #project not found
     fundingrounds = FundingRound.objects.filter(project=project)
@@ -184,7 +203,7 @@ def viewProject(request, slug):
         if followed is not None:
             follow = True     
         if request.user == project.creator.user:
-            context['post_form'] = feed.forms.PostForm()
+            context['post_form'] = feed.forms.PostForm(goals=Goal.objects.filter(funding_round=fundinground))
             if fundingrounds is not None:
                 context['add_goal_form'] = projects.forms.AddGoalForm()
             context['is_creator'] = True
@@ -199,7 +218,7 @@ def viewProject(request, slug):
 @login_required
 def addGoal(request):
     try:
-        ent = Entrepeneur.objects.get(user=request.user)
+        ent = Entrepreneur.objects.get(user=request.user)
         pid = request.session['pid']
         project = Project.objects.get(id=pid, creator=ent)
     except:
