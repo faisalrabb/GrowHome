@@ -1,0 +1,5 @@
+django-paypal
+stream-django
+django-extensions
+django-chatter
+django-cron
