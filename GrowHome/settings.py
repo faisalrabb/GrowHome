@@ -11,16 +11,25 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import csv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+keys = []
+with open('keys.secret', 'r') as secrets:
+    reader = csv.reader(secrets)
+    for row in reader:
+        strpd = row.strip(" = ")
+        keys.append(strps[1])
+
+#keys[0] = secret_key, [1] = stream key, [2] = stream secret
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '$6lr(!(woz0gjr+5iz8(ug%#i=)06s01x)^&kvm=-^cey&((n9'
+SECRET_KEY = keys[0]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -28,8 +37,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 #django-stream settings
-STREAM_API_KEY = 'sdgn5njr25h6'
-STREAM_API_SECRET = 'rqexcdw88vxmmpsvhdmr8k4kcsw933mggwv34xhyu5j2pt49fqstzusuvxr3r2nw'
+STREAM_API_KEY = keys[1]
+STREAM_API_SECRET = keys[2]
 
 #django-paypal settings
 PAYPAL_RECEIVER_EMAIL = 'sb-zjdi91796694@business.example.com'
