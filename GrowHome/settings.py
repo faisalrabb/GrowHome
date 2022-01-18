@@ -17,7 +17,7 @@ import csv
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 keys = []
-with open('keys.secret', 'r') as secrets:
+with open('../keys.secret', 'r') as secrets:
     reader = csv.reader(secrets)
     for row in reader:
         strpd = row.strip(" = ")
